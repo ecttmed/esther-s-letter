@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Message from Tommy</title>
+  <style>
+    body {
+      background-color: #fff0f5;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .chat-container {
+      background-color: white;
+      width: 90%;
+      max-width: 600px;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .message {
+      background: linear-gradient(135deg, #ffc0cb, #ffe4e1);
+      padding: 12px 18px;
+      margin: 8px 0 4px;
+      border-radius: 20px;
+      max-width: 80%;
+      align-self: flex-start;
+      white-space: pre-wrap;
+      overflow: hidden;
+      border: 1px solid #f8c4d4;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .timestamp {
+      font-size: 0.75rem;
+      color: #888;
+      margin-left: 45px;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    .typing-indicator {
+      font-style: italic;
+      color: gray;
+      margin-top: 5px;
+      margin-left: 45px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-right: 10px;
+      background: url('https://i.postimg.cc/0j2s2jcf/ECTT.jpg') no-repeat center center / cover;
+    }
+
+    .msg-wrap {
+      display: flex;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .msg-content {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    audio {
+      display: none;
+    }
+
+    #startBtn {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .reply-section {
+      display: none;
+      gap: 10px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    #replyInput {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    #sendBtn {
+      background: #25d366;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      .chat-container {
+        padding: 10px;
+        height: 80vh;
+      }
+
+      .message {
+        max-width: 95%;
+        font-size: 0.9rem;
+      }
+
+      .timestamp {
+        margin-left: 15px;
+        font-size: 0.7rem;
+      }
+
+      .reply-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #replyInput {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      #sendBtn {
+        width: 100%;
+        border-radius: 10px;
+      }
+
+      .msg-content {
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="startBtn">Start 💌</button>
+  <div class="chat-container" id="chat"></div>
+  <div class="reply-section" id="replySection">
+    <input type="text" id="replyInput" placeholder="Type your reply...">
+    <button id="sendBtn">📤</button>
+  </div>
+  <audio id="typeSound" src="https://cdn.pixabay.com/download/audio/2022/10/11/audio_9d761e1d75.mp3?filename=typewriter-typing-2-109221.mp3"></audio>
+  <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2025/04/27/audio_62ff6558b6.mp3?filename=love-romantic-hopeful-music-333017.mp3" loop></audio>
+
+  <script>
+    const messages = [
+      "Hey babe... 💭",
+      "I know this might feel unexpected.",
+      "But I’ve had something on my heart...",
+      "I didn’t forget your birthday.",
+      "I just didn’t wish you on that day... 🥺",
+      "Not because I didn’t care.",
+      "But because I was caught between emotions.",
+      "I wanted it to feel more meaningful.",
+      "Like right now...",
+      "When you're reading this 💕",
+      "Happy Belated Birthday, My Love 🎂",
+      "I hope your day was beautiful.",
+      "I hope you felt loved.",
+      "Even if I wasn’t in the list... 😔",
+      "You mean so much to me.",
+      "More than just a calendar notification.",
+      "More than just a birthday post.",
+      "I wanted to create something that speaks. 📖",
+      "From my heart to yours.",
+      "You're special, and you always will be.",
+      "So I’m really sorry for the silence.",
+      "For not doing the usual.",
+      "For not being loud about you that day.",
+      "But today, I’m here. Fully. 💌",
+      "With a song, with words.",
+      "And with my full heart. ❤️",
+      "Can you forgive me?",
+      "Will you smile again for me? 😊",
+      "From your baby, Tommy 💘"
+    ];
+
+    const timestamps = [
+      "3:12 AM · Still thinking of you",
+      "3:13 AM · Heart was heavy",
+      "3:14 AM · Couldn't sleep",
+      "3:15 AM · Deep breath",
+      "3:16 AM · Missing you",
+      "3:17 AM · Regret creeps in",
+      "3:18 AM · This matters",
+      "3:19 AM · Writing my heart",
+      "3:20 AM · It's real",
+      "3:21 AM · Hope you feel it",
+      "3:22 AM · Love never late",
+      "3:23 AM · Smiling at you",
+      "3:24 AM · Wishing I was there",
+      "3:25 AM · Sorry again",
+      "3:26 AM · You’re gold",
+      "3:27 AM · Real ones don't forget",
+      "3:28 AM · This moment",
+      "3:29 AM · Worth every second",
+      "3:30 AM · Hopeful heart",
+      "3:31 AM · Always yours",
+      "3:32 AM · Words can't cover",
+      "3:33 AM · Emotions raw",
+      "3:34 AM · Still your boy",
+      "3:35 AM · Forever",
+      "3:36 AM · Still typing",
+      "3:37 AM · Still loving",
+      "3:38 AM · Forgive me?",
+      "3:39 AM · Smile please",
+      "3:40 AM · This is us",
+      "3:41 AM · End of message 💌"
+    ];
+
+    const chat = document.getElementById("chat");
+    const replySection = document.getElementById("replySection");
+    const replyInput = document.getElementById("replyInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const typeSound = document.getElementById("typeSound");
+    const bgMusic = document.getElementById("bgMusic");
+    const startBtn = document.getElementById("startBtn");
+
+    let msgIndex = 0;
+    let started = false;
+
+    function showMessage() {
+      if (msgIndex >= messages.length) {
+        replySection.style.display = "flex";
+        return;
+      }
+
+      const msgWrap = document.createElement("div");
+      msgWrap.className = "msg-wrap";
+
+      const msgRow = document.createElement("div");
+      msgRow.className = "msg-content";
+
+      const avatar = document.createElement("div");
+      avatar.className = "avatar";
+
+      const message = document.createElement("div");
+      message.className = "message";
+
+      const timestamp = document.createElement("div");
+      timestamp.className = "timestamp";
+      timestamp.textContent = timestamps[msgIndex];
+
+      const typing = document.createElement("div");
+      typing.className = "typing-indicator";
+      typing.textContent = "Tommy is typing...";
+      chat.appendChild(typing);
+
+      setTimeout(() => {
+        chat.removeChild(typing);
+        msgRow.appendChild(avatar);
+        msgRow.appendChild(message);
+        msgWrap.appendChild(msgRow);
+        msgWrap.appendChild(timestamp);
+        chat.appendChild(msgWrap);
+        chat.scrollTop = chat.scrollHeight;
+        typeSound.currentTime = 0;
+        typeSound.play();
+
+        let charIndex = 0;
+        const currentMsg = messages[msgIndex];
+        const typeInterval = setInterval(() => {
+          if (charIndex < currentMsg.length) {
+            message.textContent += currentMsg[charIndex];
+            charIndex++;
+          } else {
+            clearInterval(typeInterval);
+          }
+        }, 50);
+
+        msgIndex++;
+        setTimeout(showMessage, 3000);
+      }, 2000);
+    }
+
+    sendBtn.addEventListener("click", () => {
+      const msg = replyInput.value.trim();
+      if (msg) {
+        window.open(`https://wa.me/2348022488439?text=${encodeURIComponent(msg)}`, "_blank");
+      }
+    });
+
+    startBtn.addEventListener("click", () => {
+      if (started) return;
+      started = true;
+      startBtn.style.display = "none";
+      bgMusic.play();
+      showMessage();
+    });
+  </script>
+</body>
+</html>
